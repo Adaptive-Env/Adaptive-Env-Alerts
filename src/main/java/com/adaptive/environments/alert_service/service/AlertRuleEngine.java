@@ -25,9 +25,8 @@ public class AlertRuleEngine {
     public List<AlertDTO> evaluateAll(DeviceData data) {
         String deviceType = data.getType();
 
-        return conditionRegistry.getAllConditions().entrySet().stream()
-                .filter(entry -> entry.getKey().startsWith(deviceType + "-"))
-                .map(Map.Entry::getValue)
+        return conditionRegistry.getAllConditions().stream()
+                .filter(condition -> deviceType.equals(condition.getDeviceType()))
                 .filter(condition -> evaluateSingleCondition(condition, data))
                 .map(condition -> new AlertDTO(
                         data.getDeviceId(),
@@ -38,6 +37,7 @@ public class AlertRuleEngine {
                 ))
                 .toList();
     }
+
 
     private boolean evaluateSingleCondition(AlertCondition condition, DeviceData data) {
         try {
