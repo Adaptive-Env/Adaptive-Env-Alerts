@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AlertDTO {
+public class AlertRecord {
     private String deviceId;
     private AlertType type;
     private AlertSeverity severity;

@@ -1,7 +1,7 @@
 package com.adaptive.environments.alert_service.service;
 
 import com.adaptive.environments.alert_service.model.alert.AlertCondition;
-import com.adaptive.environments.alert_service.model.alert.AlertDTO;
+import com.adaptive.environments.alert_service.model.alert.AlertRecord;
 import com.adaptive.environments.alert_service.model.alert.AlertType;
 import com.adaptive.environments.alert_service.model.alert.ComparisonOperator;
 import com.adaptive.environments.alert_service.model.data.DeviceData;
@@ -19,13 +19,13 @@ public class AlertRuleEngine {
         this.conditionRegistry = conditionRegistry;
     }
 
-    public List<AlertDTO> evaluateAll(DeviceData data) {
+    public List<AlertRecord> evaluateAll(DeviceData data) {
         String sensorType = data.getType();
 
         return conditionRegistry.getAllConditions().stream()
                 .filter(condition -> sensorType.equals(condition.getDeviceType()))
                 .filter(condition -> evaluateSingleCondition(condition, data))
-                .map(condition -> new AlertDTO(
+                .map(condition -> new AlertRecord(
                         data.getDeviceId(),
                         AlertType.valueOf(condition.getParameter().toUpperCase()),
                         condition.getSeverity(),

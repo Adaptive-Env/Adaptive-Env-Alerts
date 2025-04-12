@@ -19,8 +19,9 @@ public class SensorTypeRegistry {
     public Map<String, Class<?>> getSchemaFor(String sensorType) {
         return schema.get(sensorType);
     }
-
+    /*
     public boolean supports(String sensorType) {
         return schema.containsKey(sensorType);
     }
+    */
 }

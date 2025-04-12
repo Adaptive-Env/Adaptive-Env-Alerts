@@ -1,6 +1,6 @@
 package com.adaptive.environments.alert_service.kafka;
 
-import com.adaptive.environments.alert_service.model.alert.AlertDTO;
+import com.adaptive.environments.alert_service.model.alert.AlertRecord;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
@@ -15,18 +15,18 @@ public class KafkaAlertProducer {
 
     private static final Logger log = LoggerFactory.getLogger(KafkaAlertProducer.class);
 
-    private final KafkaSender<String, AlertDTO> kafkaSender;
+    private final KafkaSender<String, AlertRecord> kafkaSender;
     private final MeterRegistry meterRegistry;
 
-    public KafkaAlertProducer(KafkaSender<String, AlertDTO> kafkaSender,
+    public KafkaAlertProducer(KafkaSender<String, AlertRecord> kafkaSender,
                               MeterRegistry meterRegistry) {
         this.kafkaSender = kafkaSender;
         this.meterRegistry = meterRegistry;
     }
 
-    public void sendAlert(String topic, AlertDTO alert) {
-        ProducerRecord<String, AlertDTO> record = new ProducerRecord<>(topic, alert.getDeviceId(), alert);
-        SenderRecord<String, AlertDTO, String> senderRecord = SenderRecord.create(record, null);
+    public void sendAlert(String topic, AlertRecord alert) {
+        ProducerRecord<String, AlertRecord> record = new ProducerRecord<>(topic, alert.getDeviceId(), alert);
+        SenderRecord<String, AlertRecord, String> senderRecord = SenderRecord.create(record, null);
 
         kafkaSender.send(Flux.just(senderRecord))
                 .doOnNext(result -> {

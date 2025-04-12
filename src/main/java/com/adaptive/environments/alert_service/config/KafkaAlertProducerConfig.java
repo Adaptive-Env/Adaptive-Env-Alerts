@@ -1,6 +1,6 @@
 package com.adaptive.environments.alert_service.config;
 
-import com.adaptive.environments.alert_service.model.alert.AlertDTO;
+import com.adaptive.environments.alert_service.model.alert.AlertRecord;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ser.std.StringSerializer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -20,13 +20,13 @@ public class KafkaAlertProducerConfig {
     private String bootstrapServers;
 
     @Bean
-    public KafkaSender<String, AlertDTO> kafkaSenderAlert() {
+    public KafkaSender<String, AlertRecord> kafkaSenderAlert() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 
-        SenderOptions<String, AlertDTO> options = SenderOptions.create(props);
+        SenderOptions<String, AlertRecord> options = SenderOptions.create(props);
         return KafkaSender.create(options);
     }
 }
