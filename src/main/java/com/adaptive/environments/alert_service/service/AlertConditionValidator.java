@@ -3,64 +3,57 @@ package com.adaptive.environments.alert_service.service;
 import com.adaptive.environments.alert_service.model.alert.AlertCondition;
 import com.adaptive.environments.alert_service.model.alert.ComparisonOperator;
 import com.adaptive.environments.alert_service.model.data.DeviceData;
-import com.adaptive.environments.alert_service.registry.DeviceDeserializerRegistry;
+import com.adaptive.environments.alert_service.registry.SensorTypeRegistry;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 
 @Component
 public class AlertConditionValidator {
-    private final DeviceDeserializerRegistry deviceDeserializerRegistry;
 
-    public AlertConditionValidator(DeviceDeserializerRegistry deviceDeserializerRegistry) {
-        this.deviceDeserializerRegistry = deviceDeserializerRegistry;
+    private final SensorTypeRegistry registry;
+
+    public AlertConditionValidator(SensorTypeRegistry registry) {
+        this.registry = registry;
     }
 
-    public boolean validate(AlertCondition alertCondition) {
-        return validateOperator(alertCondition) && validateConditionForDeviceType(alertCondition.getDeviceType(), alertCondition);
+    public boolean validate(AlertCondition condition) {
+        return validateOperator(condition)
+                && validateFieldAndType(condition.getDeviceType(), condition.getParameter(), condition.getValue(), condition.getOperator());
     }
 
     private boolean validateOperator(AlertCondition condition) {
-        ComparisonOperator op = condition.getOperator();
-        if (requiresNumericValue(op)) {
-            try {
+        try {
+            if (requiresNumericValue(condition.getOperator())) {
                 Double.parseDouble(condition.getValue());
-            } catch (NumberFormatException e) {
-                return false;
             }
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
         }
-        return true;
     }
 
-    public boolean validateConditionForDeviceType(String deviceType, AlertCondition condition) {
-        Class<? extends DeviceData> clazz = deviceDeserializerRegistry.resolve(deviceType);
-        if (clazz == null) {
+    private boolean validateFieldAndType(String sensorType, String field, String value, ComparisonOperator op) {
+        var schema = registry.getSchemaFor(sensorType);
+        if (schema == null || !schema.containsKey(field)) {
             return false;
         }
 
+        Class<?> expectedType = schema.get(field);
+
         try {
-            var field = clazz.getDeclaredField(condition.getParameter());
-
-            if (requiresNumericValue(condition.getOperator())) {
-                if (!Number.class.isAssignableFrom(field.getType()) && !field.getType().isPrimitive()) {
-                    return false;
-                }
-
-                try {
-                    Double.parseDouble(condition.getValue());
-                } catch (NumberFormatException e) {
-                    return false;
-                }
+            if (requiresNumericValue(op)) {
+                return Number.class.isAssignableFrom(expectedType)
+                        && !Double.isNaN(Double.parseDouble(value));
             }
 
-            if (isBooleanField(field) && isBooleanOperator(condition.getOperator())) {
-                return condition.getValue().equalsIgnoreCase("true") ||
-                        condition.getValue().equalsIgnoreCase("false");
+            if (isBooleanOperator(op)) {
+                return expectedType == Boolean.class || expectedType == boolean.class;
             }
 
             return true;
 
-        } catch (NoSuchFieldException e) {
+        } catch (Exception e) {
             return false;
         }
     }
@@ -74,9 +67,5 @@ public class AlertConditionValidator {
 
     private boolean isBooleanOperator(ComparisonOperator op) {
         return op == ComparisonOperator.EQUALS || op == ComparisonOperator.NOT_EQUALS;
-    }
-
-    private boolean isBooleanField(Field field) {
-        return field.getType().equals(Boolean.class) || field.getType().equals(boolean.class);
     }
 }

@@ -8,10 +8,8 @@ import com.adaptive.environments.alert_service.model.data.DeviceData;
 import com.adaptive.environments.alert_service.registry.ConditionRegistry;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
-
 @Component
 public class AlertRuleEngine {
 
@@ -21,12 +19,11 @@ public class AlertRuleEngine {
         this.conditionRegistry = conditionRegistry;
     }
 
-
     public List<AlertDTO> evaluateAll(DeviceData data) {
-        String deviceType = data.getType();
+        String sensorType = data.getType();
 
         return conditionRegistry.getAllConditions().stream()
-                .filter(condition -> deviceType.equals(condition.getDeviceType()))
+                .filter(condition -> sensorType.equals(condition.getDeviceType()))
                 .filter(condition -> evaluateSingleCondition(condition, data))
                 .map(condition -> new AlertDTO(
                         data.getDeviceId(),
@@ -38,19 +35,14 @@ public class AlertRuleEngine {
                 .toList();
     }
 
-
     private boolean evaluateSingleCondition(AlertCondition condition, DeviceData data) {
-        try {
-            Field field = data.getClass().getDeclaredField(condition.getParameter());
-            field.setAccessible(true);
-            Object actualValue = field.get(data);
-
-            return compareValues(actualValue, condition.getValue(), condition.getOperator());
-
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            System.err.println("Alert evaluation failed: " + e.getMessage());
+        Map<String, Object> payload = data.getData();
+        if (!payload.containsKey(condition.getParameter())) {
             return false;
         }
+
+        Object actualValue = payload.get(condition.getParameter());
+        return compareValues(actualValue, condition.getValue(), condition.getOperator());
     }
 
     private boolean compareValues(Object actual, String expectedValue, ComparisonOperator op) {
@@ -93,3 +85,4 @@ public class AlertRuleEngine {
         }
     }
 }
+
