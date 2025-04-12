@@ -41,7 +41,7 @@ public class KafkaValidatedDataConsumer {
             ValidatedData validatedData = record.value();
             DeviceData deviceData = validatedData.getDeviceData();
 
-            alertReactionService.evaluateAndReact(deviceData);
+            alertReactionService.evaluate(deviceData);
 
             meterRegistry.counter("iot.alerts.checked", "deviceType", deviceData.getType()).increment();
 
