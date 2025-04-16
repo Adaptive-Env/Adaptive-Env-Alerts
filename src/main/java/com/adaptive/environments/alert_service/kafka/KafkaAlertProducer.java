@@ -31,7 +31,7 @@ public class KafkaAlertProducer {
         kafkaSender.send(Flux.just(senderRecord))
                 .doOnNext(result -> {
                     log.info("[Kafka] Alert sent for device: {}, type: {}, severity: {}",
-                            alert.getDeviceId(), alert.getType(), alert.getSeverity());
+                            alert.getDeviceId(), alert.getDescription(), alert.getSeverity());
                     meterRegistry.counter("iot.alert.success", "severity", alert.getSeverity().name()).increment();
                 })
                 .doOnError(e -> {

@@ -21,13 +21,13 @@ public class AlertRuleEngine {
 
     public List<AlertRecord> evaluateAll(DeviceData data) {
         String sensorType = data.getType();
+        //System.out.println("All conditions: " + conditionRegistry.getAllConditions().stream().filter(condition -> sensorType.equals(condition.getDeviceType())).count());
 
         return conditionRegistry.getAllConditions().stream()
                 .filter(condition -> sensorType.equals(condition.getDeviceType()))
                 .filter(condition -> evaluateSingleCondition(condition, data))
                 .map(condition -> new AlertRecord(
                         data.getDeviceId(),
-                        AlertType.valueOf(condition.getParameter().toUpperCase()),
                         condition.getSeverity(),
                         System.currentTimeMillis(),
                         condition.getDescription()
@@ -42,6 +42,7 @@ public class AlertRuleEngine {
         }
 
         Object actualValue = payload.get(condition.getParameter());
+        System.out.println("Payload compare " + condition.getValue() + " - " + condition.getOperator() + " - " + actualValue + " - " + payload);
         return compareValues(actualValue, condition.getValue(), condition.getOperator());
     }
 

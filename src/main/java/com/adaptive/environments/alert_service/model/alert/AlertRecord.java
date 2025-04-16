@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AlertRecord {
     private String deviceId;
-    private AlertType type;
+    //private AlertType type;
     private AlertSeverity severity;
     private Long timestamp;
     private String description;

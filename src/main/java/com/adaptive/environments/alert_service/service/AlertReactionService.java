@@ -26,13 +26,12 @@ public class AlertReactionService {
 
     public List<AlertRecord> evaluate(DeviceData data) {
         List<AlertRecord> alertOpt = ruleEngine.evaluateAll(data);
-
         alertOpt.forEach(alert -> {
             meterRegistry.counter("iot.alerts.triggered",
-                    "type", alert.getType().name(),
+                    "type", alert.getDescription(),
                     "severity", alert.getSeverity().name()
             ).increment();
-
+            System.out.println("Sending alert");
             kafkaAlertProducer.sendAlert("iot.alerts", alert);
         });
 
